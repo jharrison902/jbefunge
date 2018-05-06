@@ -1,0 +1,46 @@
+buildscript {
+
+    repositories {
+        mavenCentral()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+
+    dependencies {
+        classpath "com.github.jengelman.gradle.plugins:shadow:2.0.4"
+    }
+}
+
+group 'net.jesdevtest'
+version '1.0-SNAPSHOT'
+apply plugin: 'java'
+apply plugin: "com.github.johnrengelman.shadow"
+sourceCompatibility = 1.8
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'JBeFunge',
+                'Implementation-Version': version,
+                'Main-Class': 'net.jesdevtest.jbefunge.JBeFunge'
+    }
+}
+
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile group: 'net.sourceforge.argparse4j', name: 'argparse4j', version: '0.8.1'
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src/java']
+        }
+        resources {
+            srcDirs = ['src/resources']
+        }
+    }
+}
