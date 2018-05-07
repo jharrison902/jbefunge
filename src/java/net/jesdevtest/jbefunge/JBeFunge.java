@@ -17,15 +17,16 @@ public class JBeFunge {
         ArgumentParser parser = ArgumentParsers.newFor("JBeFunge").build()
                 .defaultHelp(true)
                 .description("Java-based BeFunge 98 interpreter");
-        parser.addArgument("-w", "--width").type(Integer.class).help("The width of funge space").setDefault(500);
-        parser.addArgument("-l", "--length").type(Integer.class).help("The length of funge space").setDefault(500);
+        parser.addArgument("-w", "--width").type(Integer.class).help("The width of funge space").setDefault(80);
+        parser.addArgument("-l", "--length").type(Integer.class).help("The length of funge space").setDefault(25);
         parser.addArgument("-d", "--debug").type(Boolean.class).help("Enable debugging").setDefault(false);
-        parser.addArgument("-f", "--file").type(String.class).help("The file to interpret.").required(true);
+        parser.addArgument("-p", "--printTrace").type(Boolean.class).help("Print the trace as the program runs").setDefault(false);
+        parser.addArgument("-f", "--file").type(String.class).help("The file to interpret").required(true);
+        parser.addArgument("-t", "--tickrate").type(Integer.class).help("The tick rate for the program").setDefault(1000);
 
         Namespace res;
         try {
             res = parser.parseArgs(args);
-            System.out.println(res);
             Integer width = res.getInt("width");
             Integer length = res.getInt("length");
             if (width == null) {
@@ -38,7 +39,7 @@ public class JBeFunge {
             try {
                 String fileString = new String(Files.readAllBytes(Paths.get(res.getString("file"))), StandardCharsets.UTF_8);
                 space.loadSpace(fileString);
-                space.start(res.getBoolean("debug"));
+                space.start(res.getInt("tickrate"), res.getBoolean("debug"), res.getBoolean("printTrace"));
             } catch (Exception e) {
                 e.printStackTrace();
                 System.exit(1);
