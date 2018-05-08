@@ -28,6 +28,10 @@ public class FungeSpace {
 
     private boolean borrowedBuffer; //in case of debug or printTrace
     private StringBuilder endBuffer;
+
+    private Scanner reader;
+    private boolean explainOps; //whether we should explain the ops as they run
+
     /**
      * Create the funge space
      *
@@ -50,6 +54,7 @@ public class FungeSpace {
         currentPos.add(new int[]{0, 0, RIGHT, STR_OFF, BRIDGE_OFF}); //start at 0,0 moving right with string toggle off and bridging off.
         stack = new LinkedList<>(); //could be a stack, but going with this for now.
         endBuffer = new StringBuilder();
+        reader = new Scanner(System.in);
     }
 
     /**
@@ -87,6 +92,7 @@ public class FungeSpace {
     public void start(int tickRate, boolean debug, boolean printTrace) {
         if (debug || printTrace) {
             borrowedBuffer = true;
+            this.explainOps = printTrace;
         }
         while (!quit) {
             for (int[] ip : currentPos) {
@@ -96,7 +102,7 @@ public class FungeSpace {
                     //get current char at this position
                     char op = funge[ip[0]][ip[1]];
                     if (printTrace) {
-                        System.out.print(op);
+                        System.out.println(op);
                     }
                     if (ip[3] == 0) {
                         doOp(op, ip);
@@ -142,15 +148,21 @@ public class FungeSpace {
     }
 
     private void goUp(int[] ip) {
+        if (explainOps) {
+            System.out.println("Moving cursor up");
+        }
         if (ip[0] == 0) {
-            ip[0] = funge[0].length - 1;
+            ip[0] = funge.length - 1;
         } else {
             ip[0] -= 1;
         }
     }
 
     private void goDown(int[] ip) {
-        if (ip[0] == funge[0].length - 1) {
+        if (explainOps) {
+            System.out.println("Moving cursor down");
+        }
+        if (ip[0] == funge.length - 1) {
             ip[0] = 0;
         } else {
             ip[0] += 1;
@@ -158,15 +170,21 @@ public class FungeSpace {
     }
 
     private void goLeft(int[] ip) {
+        if (explainOps) {
+            System.out.println("Moving cursor left");
+        }
         if (ip[1] == 0) {
-            ip[1] = funge.length - 1;
+            ip[1] = funge[0].length - 1;
         } else {
             ip[1] -= 1;
         }
     }
 
     private void goRight(int[] ip) {
-        if (ip[1] == funge.length - 1) {
+        if (explainOps) {
+            System.out.println("Moving cursor right");
+        }
+        if (ip[1] == funge[0].length - 1) {
             ip[1] = 0;
         } else {
             ip[1] += 1;
@@ -290,41 +308,62 @@ public class FungeSpace {
 
     //operation section. Stack stores FungeVals.
     private void add() {
+
         FungeVal a = popStack();
         FungeVal b = popStack();
+        if (explainOps) {
+            System.out.println("Adding " + a.getIntValue() + " + " + b.getIntValue());
+        }
         stack.push(new FungeVal(a.getIntValue() + b.getIntValue()));
     }
 
     private void sub() {
         FungeVal a = popStack();
         FungeVal b = popStack();
+        if (explainOps) {
+            System.out.println("Subtracting " + b.getIntValue() + " - " + a.getIntValue());
+        }
         stack.push(new FungeVal(b.getIntValue() - a.getIntValue()));
     }
 
     private void mul() {
         FungeVal a = popStack();
         FungeVal b = popStack();
+        if (explainOps) {
+            System.out.println("Multiplying " + b.getIntValue() + " * " + a.getIntValue());
+        }
         stack.push(new FungeVal(b.getIntValue() * a.getIntValue()));
     }
 
-    //TODO: Add prompt for divide by 0
     private void div() {
         FungeVal a = popStack();
         FungeVal b = popStack();
+        if (explainOps) {
+            System.out.println("Dividing " + b.getIntValue() + " / " + a.getIntValue());
+        }
         stack.push(new FungeVal(b.getIntValue() / a.getIntValue()));
     }
 
     private void mod() {
         FungeVal a = popStack();
         FungeVal b = popStack();
+        if (explainOps) {
+            System.out.println("Modulating " + b.getIntValue() + " % " + a.getIntValue());
+        }
         stack.push(new FungeVal(b.getIntValue() % a.getIntValue()));
     }
 
     private void not() {
         FungeVal a = popStack();
         if (a.getIntValue() == 0) {
+            if (explainOps) {
+                System.out.println("Pushing 1 to the stack");
+            }
             stack.push(new FungeVal(1));
         } else {
+            if (explainOps) {
+                System.out.println("Pushing 0 to the stack");
+            }
             stack.push(new FungeVal(0));
         }
     }
@@ -333,8 +372,14 @@ public class FungeSpace {
         FungeVal a = popStack();
         FungeVal b = popStack();
         if (b.getIntValue() > a.getIntValue()) {
+            if (explainOps) {
+                System.out.println(b.getIntValue() + " is greater than " + a.getIntValue() + ". Pushing 1");
+            }
             stack.push(new FungeVal(1));
         } else {
+            if (explainOps) {
+                System.out.println(b.getIntValue() + " is not greater than " + a.getIntValue() + ". Pushing 0");
+            }
             stack.push(new FungeVal(0));
         }
     }
@@ -357,14 +402,22 @@ public class FungeSpace {
 
     private void random(int[] ip) {
         ip[2] = ThreadLocalRandom.current().nextInt(0, 4);
-
+        if (explainOps) {
+            System.out.println("Moving randomly");
+        }
     }
 
     private void horizIf(int[] ip) {
         FungeVal a = popStack();
         if (a.getIntValue() == 0) {
+            if (explainOps) {
+                System.out.println(a.getIntValue() + " is 0. Go right");
+            }
             right(ip);
         } else {
+            if (explainOps) {
+                System.out.println(a.getIntValue() + " is not 0. Go left");
+            }
             left(ip);
         }
     }
@@ -372,8 +425,14 @@ public class FungeSpace {
     private void vertIf(int[] ip) {
         FungeVal a = popStack();
         if (a.getIntValue() == 0) {
+            if (explainOps) {
+                System.out.println(a.getIntValue() + " is 0. Go down");
+            }
             down(ip);
         } else {
+            if (explainOps) {
+                System.out.println(a.getIntValue() + " is 0. Go up");
+            }
             up(ip);
         }
     }
@@ -382,12 +441,21 @@ public class FungeSpace {
         FungeVal a = popStack();
         stack.push(new FungeVal(a));
         stack.push(new FungeVal(a));
+        if (explainOps) {
+            System.out.println(a.getIntValue() + " is duplicated");
+        }
     }
 
     private void toggleStr(int[] ip) {
         if (ip[3] == STR_OFF) {
+            if (explainOps) {
+                System.out.println("String toggle on");
+            }
             ip[3] = STR_ON;
         } else {
+            if (explainOps) {
+                System.out.println("String toggle off");
+            }
             ip[3] = STR_OFF;
         }
     }
@@ -397,14 +465,23 @@ public class FungeSpace {
         FungeVal b = popStack();
         stack.push(a);
         stack.push(b);
+        if (explainOps) {
+            System.out.println("Swapping " + a.getCharValue() + " and " + b.getCharValue());
+        }
     }
 
     private void discard() {
         popStack();
+        if (explainOps) {
+            System.out.println("discard top of stack");
+        }
     }
 
     private void printInt() {
         FungeVal a = popStack();
+        if (explainOps) {
+            System.out.println("Print integer " + a.getIntValue());
+        }
         if (!borrowedBuffer) {
             System.out.print(a.getIntValue());
         } else {
@@ -414,6 +491,9 @@ public class FungeSpace {
 
     private void printChar() {
         FungeVal a = popStack();
+        if (explainOps) {
+            System.out.println("Print character " + a.getCharValue());
+        }
         if (!borrowedBuffer) {
             System.out.print(a.getCharValue());
         } else {
@@ -422,6 +502,9 @@ public class FungeSpace {
     }
 
     private void bridge(int[] ip) {
+        if (explainOps) {
+            System.out.println("Bridging next instruction");
+        }
         ip[4] = BRIDGE_ON;
     }
 
@@ -430,8 +513,14 @@ public class FungeSpace {
         int x = popStack().getIntValue();
         if (x >= 0 && x < funge[0].length
                 && y >= 0 && y < funge.length) {
+            if (explainOps) {
+                System.out.println("Getting value at (" + x + ", " + y + "): " + funge[y][x]);
+            }
             stack.push(new FungeVal(funge[y][x]));
         } else {
+            if (explainOps) {
+                System.out.println("Getting value at (" + x + ", " + y + "): Out of range. Pushing Integer 0");
+            }
             stack.push(new FungeVal(0));
         }
     }
@@ -443,25 +532,41 @@ public class FungeSpace {
 
         if (x >= 0 && x < funge[0].length
                 && y >= 0 && y < funge.length) {
+            if (explainOps) {
+                System.out.println("Setting (" + x + ", " + y + ") to " + v.getCharValue());
+            }
             funge[y][x] = v.getCharValue();
         }
     }
 
-    //TODO: Add get integer from user.
     private void getInt() {
         Scanner reader = new Scanner(System.in);
-        stack.push(new FungeVal(reader.nextInt()));
+        FungeVal val = new FungeVal(reader.nextInt());
+        stack.push(val);
+        if (explainOps) {
+            System.out.println("Received " + val.getIntValue());
+        }
         reader.close();
     }
 
-    //TODO: Add get character from user.
     private void getChar() {
-        Scanner reader = new Scanner(System.in);
-        stack.push(new FungeVal(reader.next(".").charAt(0)));
-        reader.close();
+        String input = reader.nextLine().trim();
+        FungeVal val;
+        if (input.isEmpty()) {
+            val = new FungeVal('\n');
+        } else {
+            val = new FungeVal(input.charAt(0));
+        }
+        if (explainOps) {
+            System.out.println("Received " + (val.getCharValue() == '\n' ? "LINE FEED" : val.getCharValue()));
+        }
+        stack.push(val); //limitation in keeping this platform agnostic sadly...
     }
 
     private void end() {
+        if (explainOps) {
+            System.out.println("Quit received. Ending after this cycle");
+        }
         quit = true;
     }
 
