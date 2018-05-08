@@ -30,7 +30,7 @@ public class FungeVal {
         if (classType.equals(Integer.class.getTypeName())) {
             return (Integer) value;
         }
-        return Character.getNumericValue((Character) value);
+        return (int) (Character) value;
     }
 
     public Character getCharValue() {
